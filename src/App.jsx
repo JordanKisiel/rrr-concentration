@@ -1,57 +1,103 @@
-import { Box, Button, Container, Grid, Typography } from "@mui/material"
+import { Button, Container, Grid, Typography } from "@mui/material"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import pregamePlaceholder from "../assets/pregamePlaceholder.png"
 import cardBack from "../assets/card-back-black.png"
 
 function App() {
+  const CARD_FLIP_DELAY = 2000
+
   const [deck, setDeck] = useState([])
+  const [revealedCards, setRevealedCards] = useState([])
 
-  function handleNewGame() {
-    async function getNewDeck() {
-      const deckData = await axios({
-        method: "get",
-        url: "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1",
-        responseType: "json",
+  //console.log(deck)
+
+  useEffect(() => {
+    if (revealedCards.length === 2) {
+      //if the revealed cards match ranks
+      if (revealedCards[0][0] === revealedCards[1][0]) {
+        setTimeout(() => {
+          removeMatch(revealedCards[0], revealedCards[1])
+          setRevealedCards([])
+        }, CARD_FLIP_DELAY)
+      } else {
+        setTimeout(() => {
+          hideCards()
+          setRevealedCards([])
+        }, CARD_FLIP_DELAY)
+      }
+    }
+  }, [revealedCards])
+
+  function removeMatch(card1, card2) {
+    setDeck((prevDeck) => {
+      return prevDeck.filter((card) => {
+        return card.code !== card1 && card.code !== card2
       })
+    })
+  }
 
-      const deckID = deckData.data.deck_id
-
-      const cardsData = await axios({
-        method: "get",
-        url: `https://deckofcardsapi.com/api/deck/${deckID}/draw/?count=52`,
-        responseType: "json",
-      })
-
-      //add extra revealed property to each card
-      const deck = cardsData.data.cards.map((card) => {
+  function hideCards() {
+    setDeck((prevDeck) => {
+      return prevDeck.map((card) => {
         return {
           ...card,
           isRevealed: false,
         }
       })
+    })
+  }
 
-      console.log(deck)
-
-      setDeck(deck)
-    }
-
+  function handleNewGame() {
     getNewDeck()
+    setRevealedCards([])
+  }
+
+  async function getNewDeck() {
+    const deckData = await axios({
+      method: "get",
+      url: "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1",
+      responseType: "json",
+    })
+
+    const deckID = deckData.data.deck_id
+
+    const cardsData = await axios({
+      method: "get",
+      url: `https://deckofcardsapi.com/api/deck/${deckID}/draw/?count=52`,
+      responseType: "json",
+    })
+
+    //add extra revealed property to each card
+    const deck = cardsData.data.cards.map((card) => {
+      return {
+        ...card,
+        isRevealed: false,
+      }
+    })
+
+    setDeck(deck)
   }
 
   function handleCardClick(cardCode) {
-    setDeck((prevDeck) => {
-      return prevDeck.map((card) => {
-        if (card.code === cardCode) {
-          return {
-            ...card,
-            isRevealed: true,
+    if (revealedCards.length < 2) {
+      setDeck((prevDeck) => {
+        return prevDeck.map((card) => {
+          if (card.code === cardCode) {
+            return {
+              ...card,
+              isRevealed: true,
+            }
+          } else {
+            return card
           }
-        } else {
-          return card
-        }
+        })
       })
-    })
+
+      setRevealedCards((prevCards) => {
+        return [...prevCards, cardCode]
+      })
+    }
   }
 
   const cards = deck.map((card) => {
