@@ -21,6 +21,6 @@ As of now, there are no projects available as I'm currently in the process of de
 
 ## Author
 
-- Website - [Jordan Kisiel](https://robojojo.co/)
+- Website - [Jordan Kisiel](https://jordankisiel.com/)
 - Frontend Mentor - [@JordanKisiel](https://www.frontendmentor.io/profile/JordanKisiel)
 - Twitter - [@JordanKisiel](https://www.twitter.com/JordanKisiel)
